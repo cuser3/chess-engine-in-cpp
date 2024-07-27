@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <set>
 #include "chessengine.h"
 
 using namespace std;
@@ -8,6 +10,7 @@ using namespace std;
 GameState::GameState()
 {
     whiteToMove = true;
+
     string initialBoard[8][8] = {
         {"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
         {"bP", "bP", "bP", "bP", "bP", "bP", "bP", "bP"},
@@ -27,7 +30,6 @@ GameState::GameState()
     }
 }
 
-
 void GameState::displayBoard()
 {
     cout << "  a b c d e f g h" << endl;
@@ -45,27 +47,88 @@ void GameState::displayBoard()
 
 bool GameState::isValidMove(string move)
 {
-    if (move.length() != 4)
-    {
-        return false;
-    }
-    int startCol = move[0] - 'a';
-    int startRow = 8 - (move[1] - '0');
-    int endCol = move[2] - 'a';
-    int endRow = 8 - (move[3] - '0');
-
-    if (startCol < 0 || startCol >= 8 || endCol < 0 || endCol >= 8 || startRow < 0 || startRow >= 8 || endRow < 0 || endRow >= 8)
-    {
-        return false;
-    }
-
-    if (board[startRow][startCol] == "--")
-    {
-        return false;
-    }
-
     return true;
 }
+
+set<string> GameState::generatePossibleMoves()
+{
+    set<string> possibleMoves;
+    for (int i = 0; i < 8; i++)
+    {
+        for (int j = 0; j < 8; j++)
+        {
+            char pieceColor = board[i][j][0];
+            if ((pieceColor == 'w' && whiteToMove) || (pieceColor == 'b' && !whiteToMove))
+            {
+                char pieceType = board[i][j][1];
+                if (pieceType == 'P')
+                {
+                    getAllPawnMoves(i, j, possibleMoves);
+                }
+                else if (pieceType == 'B')
+                {
+                    getAllBishopMoves(i, j, possibleMoves);
+                }
+                else if (pieceType == 'N')
+                {
+                    getAllKnightMoves(i, j, possibleMoves);
+                }
+                else if (pieceType == 'R')
+                {
+                    getAllRookMoves(i, j, possibleMoves);
+                }
+                else if (pieceType == 'Q')
+                {
+                    getAllQueenMoves(i, j, possibleMoves);
+                }
+                else if (pieceType == 'K')
+                {
+                    getAllKingMoves(i, j, possibleMoves);
+                }
+            }
+        }
+    }
+
+    return possibleMoves;
+}
+
+void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
+{
+    if (whiteToMove)
+    {
+        if (board[row - 1][column] == "--")
+        {
+            string move = convertToMove(row, column, row - 1, column);
+            moves.insert(move);
+            if ((row == 6) && (board[row - 2][column] == "--"))
+            {
+                move = convertToMove(row, column, row - 1, column);
+                moves.insert(move);
+            }
+        }
+    }
+}
+
+void GameState::getAllBishopMoves(int row, int column, set<string> moves)
+{
+}
+
+void GameState::getAllKnightMoves(int row, int column, set<string> moves)
+{
+}
+
+void GameState::getAllRookMoves(int row, int column, set<string> moves)
+{
+}
+
+void GameState::getAllQueenMoves(int row, int column, set<string> moves)
+{
+}
+
+void GameState::getAllKingMoves(int row, int column, set<string> moves)
+{
+}
+
 
 void GameState::makeMove(string move)
 {
@@ -76,4 +139,17 @@ void GameState::makeMove(string move)
 
     board[endRow][endCol] = board[startRow][startCol];
     board[startRow][startCol] = "--";
+
+    movelog.push_back(move);
+    whiteToMove = !whiteToMove;
+}
+
+string GameState::convertToMove(int startCol, int startRow, int endCol, int endRow)
+{
+    char startColChar = 'a' + startCol;
+    char endColChar = 'a' + endCol;
+    int startRowNum = 8 - startRow;
+    int endRowNum = 8 - endRow;
+
+    return string(1, startColChar) + to_string(startRowNum) + string(1, endColChar) + to_string(endRowNum);
 }

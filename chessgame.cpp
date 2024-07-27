@@ -1,19 +1,24 @@
 #include <iostream>
 #include <string>
 #include "chessengine.h"
+#include <set>
 
 using namespace std;
 
-
 int main()
 {
-    GameState gamestate; 
+    GameState gamestate;
 
     string move;
 
     while (true)
     {
         gamestate.displayBoard();
+        set<string> validMoves = gamestate.generatePossibleMoves();
+        for (const string& move : validMoves)
+        {
+            cout << move << " " << endl;
+        }
         cout << "Enter your move (e.g., e2e4) or 'q' to quit: ";
         cin >> move;
 
