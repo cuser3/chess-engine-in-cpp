@@ -15,10 +15,6 @@ int main()
     {
         gamestate.displayBoard();
         set<string> validMoves = gamestate.generatePossibleMoves();
-        for (const string& move : validMoves)
-        {
-            cout << move << " " << endl;
-        }
         cout << "Enter your move (e.g., e2e4) or 'q' to quit: ";
         cin >> move;
 
@@ -27,7 +23,7 @@ int main()
             break;
         }
 
-        if (gamestate.isValidMove(move))
+        if (validMoves.count(move))
         {
             gamestate.makeMove(move);
         }

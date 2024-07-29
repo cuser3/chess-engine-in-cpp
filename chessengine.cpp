@@ -32,7 +32,7 @@ GameState::GameState()
 
 void GameState::displayBoard()
 {
-    cout << "  a b c d e f g h" << endl;
+    cout << "  a  b  c  d  e  f  g  h" << endl;
     for (int i = 0; i < 8; i++)
     {
         cout << 8 - i << " ";
@@ -42,7 +42,7 @@ void GameState::displayBoard()
         }
         cout << 8 - i << endl;
     }
-    cout << "  a b c d e f g h" << endl;
+    cout << "  a  b  c  d  e  f  g  h" << endl;
 }
 
 bool GameState::isValidMove(string move)
@@ -102,7 +102,18 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
             moves.insert(move);
             if ((row == 6) && (board[row - 2][column] == "--"))
             {
-                move = convertToMove(row, column, row - 1, column);
+                move = convertToMove(row, column, row - 2, column);
+                moves.insert(move);
+            }
+        }
+    } else {
+        if (board[row + 1][column] == "--")
+        {
+            string move = convertToMove(row, column, row + 1, column);
+            moves.insert(move);
+            if ((row == 1) && (board[row + 2][column] == "--"))
+            {
+                move = convertToMove(row, column, row + 2, column);
                 moves.insert(move);
             }
         }
@@ -144,7 +155,7 @@ void GameState::makeMove(string move)
     whiteToMove = !whiteToMove;
 }
 
-string GameState::convertToMove(int startCol, int startRow, int endCol, int endRow)
+string GameState::convertToMove(int startRow, int startCol, int endRow, int endCol)
 {
     char startColChar = 'a' + startCol;
     char endColChar = 'a' + endCol;
