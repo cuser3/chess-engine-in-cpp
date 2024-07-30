@@ -61,29 +61,26 @@ set<string> GameState::generatePossibleMoves()
             if ((pieceColor == 'w' && whiteToMove) || (pieceColor == 'b' && !whiteToMove))
             {
                 char pieceType = board[i][j][1];
-                if (pieceType == 'P')
+                switch (pieceType)
                 {
+                case 'P':
                     getAllPawnMoves(i, j, possibleMoves);
-                }
-                else if (pieceType == 'B')
-                {
+                    break;
+                case 'B':
                     getAllBishopMoves(i, j, possibleMoves);
-                }
-                else if (pieceType == 'N')
-                {
+                    break;
+                case 'N':
                     getAllKnightMoves(i, j, possibleMoves);
-                }
-                else if (pieceType == 'R')
-                {
+                    break;
+                case 'R':
                     getAllRookMoves(i, j, possibleMoves);
-                }
-                else if (pieceType == 'Q')
-                {
+                    break;
+                case 'Q':
                     getAllQueenMoves(i, j, possibleMoves);
-                }
-                else if (pieceType == 'K')
-                {
+                    break;
+                case 'K':
                     getAllKingMoves(i, j, possibleMoves);
+                    break;
                 }
             }
         }
@@ -106,7 +103,25 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
                 moves.insert(move);
             }
         }
-    } else {
+        if (column - 1 >= 0)
+        {
+            if (board[row - 1][column - 1][0] == 'b')
+            {
+                string move = convertToMove(row, column, row - 1, column - 1);
+                moves.insert(move);
+            }
+        }
+        if (column + 1 <= 7)
+        {
+            if (board[row - 1][column + 1][0] == 'b')
+            {
+                string move = convertToMove(row, column, row - 1, column + 1);
+                moves.insert(move);
+            }
+        }
+    }
+    else
+    {
         if (board[row + 1][column] == "--")
         {
             string move = convertToMove(row, column, row + 1, column);
@@ -117,29 +132,93 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
                 moves.insert(move);
             }
         }
+        if (column - 1 >= 0)
+        {
+            if (board[row + 1][column - 1][0] == 'w')
+            {
+                string move = convertToMove(row, column, row + 1, column - 1);
+                moves.insert(move);
+            }
+        }
+        if (column + 1 <= 7)
+        {
+            if (board[row + 1][column + 1][0] == 'w')
+            {
+                string move = convertToMove(row, column, row + 1, column + 1);
+                moves.insert(move);
+            }
+        }
     }
 }
 
-void GameState::getAllBishopMoves(int row, int column, set<string> moves)
+void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
 {
 }
 
-void GameState::getAllKnightMoves(int row, int column, set<string> moves)
+void GameState::getAllKnightMoves(int row, int column, set<string> &moves)
 {
 }
 
-void GameState::getAllRookMoves(int row, int column, set<string> moves)
+void GameState::getAllRookMoves(int row, int column, set<string> &moves)
+{
+    int r = row;
+    int c = column;
+
+    if (r - 1 >= 0) {
+        while (board[r - 1][column] == "--") {
+            string move = convertToMove(row, column, r - 1, column);
+            moves.insert(move);
+            r--;
+        }
+        if ((whiteToMove && board[r - 1][column][0] == 'b') || !whiteToMove && board[r - 1][column][0] == 'w') {
+            string move = convertToMove(row, column, r - 1, column);
+            moves.insert(move);
+        }
+    }
+    r = row;
+    if (r + 1 <= 7) {
+        while (board[r + 1][column] == "--") {
+            string move = convertToMove(row, column, r + 1, column);
+            moves.insert(move);
+            r++;
+        }
+        if ((whiteToMove && board[r + 1][column][0] == 'b') || !whiteToMove && board[r + 1][column][0] == 'w') {
+            string move = convertToMove(row, column, r + 1, column);
+            moves.insert(move);
+        }
+    }
+    if (c - 1 >= 0) {
+        while (board[row][c - 1] == "--") {
+            string move = convertToMove(row, column, row, c - 1);
+            moves.insert(move);
+            c--;
+        }
+        if ((whiteToMove && board[row][c - 1][0] == 'b') || !whiteToMove && board[row][c - 1][0] == 'w') {
+            string move = convertToMove(row, column, row, c - 1);
+            moves.insert(move);
+        }
+    }
+    c = column;
+    if (c + 1 <= 7) {
+        while (board[row][c + 1] == "--") {
+            string move = convertToMove(row, column, row, c + 1);
+            moves.insert(move);
+            c++;
+        }
+        if ((whiteToMove && board[row][c + 1][0] == 'b') || !whiteToMove && board[row][c + 1][0] == 'w') {
+            string move = convertToMove(row, column, row, c + 1);
+            moves.insert(move);
+        }
+    }
+}
+
+void GameState::getAllQueenMoves(int row, int column, set<string> &moves)
 {
 }
 
-void GameState::getAllQueenMoves(int row, int column, set<string> moves)
+void GameState::getAllKingMoves(int row, int column, set<string> &moves)
 {
 }
-
-void GameState::getAllKingMoves(int row, int column, set<string> moves)
-{
-}
-
 
 void GameState::makeMove(string move)
 {

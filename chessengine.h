@@ -29,15 +29,15 @@ public:
 
     void getAllPawnMoves(int, int, set<string> &);
 
-    void getAllBishopMoves(int, int, set<string>);
+    void getAllBishopMoves(int, int, set<string> &);
 
-    void getAllKnightMoves(int, int, set<string>);
+    void getAllKnightMoves(int, int, set<string> &);
 
-    void getAllRookMoves(int, int, set<string>);
+    void getAllRookMoves(int, int, set<string> &);
 
-    void getAllQueenMoves(int, int, set<string>);
+    void getAllQueenMoves(int, int, set<string> &);
 
-    void getAllKingMoves(int, int, set<string>);
+    void getAllKingMoves(int, int, set<string> &);
 
     string convertToMove(int, int, int, int);
 };
