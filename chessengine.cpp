@@ -153,7 +153,7 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
 
 void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
 {
-    int directions[4][2] = { {-1, -1}, {1, 1}, {1, -1}, {-1, 1} };
+    int directions[4][2] = {{-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
 
     for (auto &direction : directions)
     {
@@ -179,14 +179,34 @@ void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
     }
 }
 
-
 void GameState::getAllKnightMoves(int row, int column, set<string> &moves)
 {
+    int knightMoves[8][2] = {{-2, -1}, {-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}};
+
+    for (auto &knightMove : knightMoves)
+    {
+        int r = row + knightMove[0];
+        int c = column + knightMove[1];
+
+        if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--") {
+            string move = convertToMove(row, column, r, c);
+            moves.insert(move);
+        }
+
+        if (r >= 0 && r <= 7 && c >= 0 && c <= 7)
+        {
+            if ((whiteToMove && board[r][c][0] == 'b') || (!whiteToMove && board[r][c][0] == 'w'))
+            {
+                string move = convertToMove(row, column, r, c);
+                moves.insert(move);
+            }
+        }
+    }
 }
 
 void GameState::getAllRookMoves(int row, int column, set<string> &moves)
 {
-    int directions[4][2] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1} }; 
+    int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
     for (auto &direction : directions)
     {
@@ -212,13 +232,35 @@ void GameState::getAllRookMoves(int row, int column, set<string> &moves)
     }
 }
 
-
 void GameState::getAllQueenMoves(int row, int column, set<string> &moves)
 {
+    getAllRookMoves(row, column, moves);
+    getAllBishopMoves(row, column, moves);
 }
 
 void GameState::getAllKingMoves(int row, int column, set<string> &moves)
 {
+    int kingMoves[8][2] = {{-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}};
+
+    for (auto &kingMove : kingMoves)
+    {
+        int r = row + kingMove[0];
+        int c = column + kingMove[1];
+
+        if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--") {
+            string move = convertToMove(row, column, r, c);
+            moves.insert(move);
+        }
+
+        if (r >= 0 && r <= 7 && c >= 0 && c <= 7)
+        {
+            if ((whiteToMove && board[r][c][0] == 'b') || (!whiteToMove && board[r][c][0] == 'w'))
+            {
+                string move = convertToMove(row, column, r, c);
+                moves.insert(move);
+            }
+        }
+    }
 }
 
 void GameState::makeMove(string move)
