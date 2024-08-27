@@ -271,21 +271,21 @@ void GameState::getAllKingMoves(int row, int column, set<string> &moves)
 
 void GameState::checkForPinsAndChecks()
 {
-    vector<string> pins = {};
-    vector<string> checks = {};
+    vector<array<int, 4>> pins = {};
+    vector<array<int, 4>> checks = {};
     bool inCheck = false;
     char enemyColor;
     char allyColor;
     int startRow;
     int startCol;
     int directions[8][2] = {{0, 1},
-                            {1, 1},
-                            {1, 0},
-                            {1, -1},
-                            {0, -1},
-                            {-1, -1},
                             {-1, 0},
-                            {-1, 1}};
+                            {1, 0},
+                            {0, -1},
+                            {-1, 1},
+                            {-1, -1},
+                            {1, 1},
+                            {1, -1}};
 
     if (whiteToMove)
     {
@@ -302,8 +302,11 @@ void GameState::checkForPinsAndChecks()
         startCol = this->blackKingLocation[1];
     }
 
-    for (auto &dir : directions)
+    for (int j = 0; j < 8; j++)
     {
+        int dir[2] = {};
+        dir[0] = directions[j][0];
+        dir[1] = directions[j][1];
         array<int, 4> possiblePins = {};
         for (int i = 1; i < 8; i++)
         {
@@ -323,9 +326,31 @@ void GameState::checkForPinsAndChecks()
                         break;
                     }
                 }
-                else if (endPiece[0] == enemyColor) {
+                else if (endPiece[0] == enemyColor)
+                {
                     char type = endPiece[1];
-
+                    if ((0 <= j && j <= 3 && type == 'R') ||
+                        (j >= 4 && j <= 7 && type == 'B') ||
+                        type == 'Q' ||
+                        (i == 1 && type == 'K') ||
+                        (i == 1 && type == 'P' && ((enemyColor == 'w' && j >= 6 && j <= 7) || (enemyColor == 'b' && j >= 4 && j <= 5))))
+                    {
+                        if (possiblePins.empty())
+                        {
+                            inCheck = true;
+                            checks.push_back({endRow, endCol, dir[0], dir[1]});
+                            break;
+                        }
+                        else
+                        {
+                            pins.push_back(possiblePins);
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }
