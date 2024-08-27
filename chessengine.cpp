@@ -10,6 +10,10 @@ using namespace std;
 GameState::GameState()
 {
     whiteToMove = true;
+    whiteKingLocation = {7, 4};
+    blackKingLocation = {0, 4};
+    inCheck = false;
+    movelog = {};
 
     string initialBoard[8][8] = {
         {"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
@@ -188,7 +192,8 @@ void GameState::getAllKnightMoves(int row, int column, set<string> &moves)
         int r = row + knightMove[0];
         int c = column + knightMove[1];
 
-        if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--") {
+        if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--")
+        {
             string move = convertToMove(row, column, r, c);
             moves.insert(move);
         }
@@ -247,7 +252,8 @@ void GameState::getAllKingMoves(int row, int column, set<string> &moves)
         int r = row + kingMove[0];
         int c = column + kingMove[1];
 
-        if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--") {
+        if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--")
+        {
             string move = convertToMove(row, column, r, c);
             moves.insert(move);
         }
@@ -258,6 +264,69 @@ void GameState::getAllKingMoves(int row, int column, set<string> &moves)
             {
                 string move = convertToMove(row, column, r, c);
                 moves.insert(move);
+            }
+        }
+    }
+}
+
+void GameState::checkForPinsAndChecks()
+{
+    vector<string> pins = {};
+    vector<string> checks = {};
+    bool inCheck = false;
+    char enemyColor;
+    char allyColor;
+    int startRow;
+    int startCol;
+    int directions[8][2] = {{0, 1},
+                            {1, 1},
+                            {1, 0},
+                            {1, -1},
+                            {0, -1},
+                            {-1, -1},
+                            {-1, 0},
+                            {-1, 1}};
+
+    if (whiteToMove)
+    {
+        enemyColor = 'b';
+        allyColor = 'w';
+        startRow = this->whiteKingLocation[0];
+        startCol = this->whiteKingLocation[1];
+    }
+    else
+    {
+        enemyColor = 'w';
+        allyColor = 'b';
+        startRow = this->blackKingLocation[0];
+        startCol = this->blackKingLocation[1];
+    }
+
+    for (auto &dir : directions)
+    {
+        array<int, 4> possiblePins = {};
+        for (int i = 1; i < 8; i++)
+        {
+            int endRow = startRow + dir[0] * i;
+            int endCol = startCol + dir[1] * i;
+            if (endRow >= 0 && endRow <= 7 && endCol >= 0 && endCol <= 7)
+            {
+                string endPiece = board[endRow][endCol];
+                if (endPiece[0] == allyColor)
+                {
+                    if (possiblePins.empty())
+                    {
+                        possiblePins = {startRow, startCol, dir[0], dir[1]};
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else if (endPiece[0] == enemyColor) {
+                    char type = endPiece[1];
+
+                }
             }
         }
     }

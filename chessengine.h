@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <array>
 
 using namespace std;
 
@@ -14,6 +15,9 @@ public:
     bool whiteToMove;
     string board[8][8];
     vector<string> movelog;
+    array<int, 2> whiteKingLocation;
+    array<int, 2> blackKingLocation;
+    bool inCheck;
 
     // Constructor
     GameState();
@@ -38,6 +42,8 @@ public:
     void getAllQueenMoves(int, int, set<string> &);
 
     void getAllKingMoves(int, int, set<string> &);
+
+    void checkForPinsAndChecks();
 
     string convertToMove(int, int, int, int);
 };
