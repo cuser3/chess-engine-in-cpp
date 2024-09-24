@@ -14,7 +14,7 @@ int main()
     while (true)
     {
         gamestate.displayBoard();
-        set<string> validMoves = gamestate.generatePossibleMoves();
+        set<string> validMoves = gamestate.getValidMoves();
         cout << "Enter your move (e.g., e2e4) or 'q' to quit: ";
         cin >> move;
 

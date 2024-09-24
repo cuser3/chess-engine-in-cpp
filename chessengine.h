@@ -18,6 +18,8 @@ public:
     array<int, 2> whiteKingLocation;
     array<int, 2> blackKingLocation;
     bool inCheck;
+    vector<array<int, 4>> pins;
+    vector<array<int, 4>> checks;
 
     // Constructor
     GameState();
@@ -25,7 +27,7 @@ public:
     // Member function to display the board
     void displayBoard();
     
-    bool isValidMove(string);
+    set<string> getValidMoves();
 
     void makeMove(string);
 

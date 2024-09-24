@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <algorithm>
 #include "chessengine.h"
 
 using namespace std;
@@ -14,6 +15,8 @@ GameState::GameState()
     blackKingLocation = {0, 4};
     inCheck = false;
     movelog = {};
+    checks = {};
+    pins = {};
 
     string initialBoard[8][8] = {
         {"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
@@ -49,9 +52,78 @@ void GameState::displayBoard()
     cout << "  a  b  c  d  e  f  g  h" << endl;
 }
 
-bool GameState::isValidMove(string move)
+set<string> GameState::getValidMoves()
 {
-    return true;
+    set<string> moves = {};
+    int kingRow;
+    int kingCol;
+    checkForPinsAndChecks();
+    if (whiteToMove)
+    {
+        kingRow = whiteKingLocation[0];
+        kingCol = whiteKingLocation[1];
+    }
+    else
+    {
+        kingRow = blackKingLocation[0];
+        kingCol = blackKingLocation[1];
+    }
+    if (inCheck)
+    {
+        if (checks.size() == 1)
+        {
+            moves = generatePossibleMoves();
+            array<int, 4> check = checks[0];
+            int checkRow = check[0];
+            int checkCol = check[1];
+            string pieceChecking = board[checkRow][checkCol];
+            vector<array<int, 2>> validSquares = {};
+            if (pieceChecking[1] == 'N')
+            {
+                validSquares.push_back({checkRow, checkCol});
+            }
+            else
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    array<int, 2> validSquare = {kingRow + check[2] * i, kingCol + check[3] * i};
+                    validSquares.push_back(validSquare);
+                    if (validSquare[0] == checkRow && validSquare[1] == checkCol)
+                    {
+                        break;
+                    }
+                }
+            }
+            for (auto it = moves.begin(); it != moves.end();)
+            {
+                string move = *it;
+                int startCol = move[0] - 'a';
+                int startRow = 8 - (move[1] - '0');
+                int endCol = move[2] - 'a';
+                int endRow = 8 - (move[3] - '0');
+                string movedPiece = board[startRow][startCol];
+                if (movedPiece[1] != 'K') //move doesn't move King so it must be block or capture move
+                {
+                    array<int, 2> item = {endRow, endCol};
+                    if (std::find(validSquares.begin(), validSquares.end(), item) == validSquares.end()) { //move doesn't block check or capture
+                        it = moves.erase(it);
+                        cout << "move erased" << endl;
+                    }
+                } else {
+                    ++it;
+                }
+            }
+        }
+        else
+        {
+            getAllKingMoves(kingRow, kingCol, moves);
+        }
+    }
+    else
+    {
+        moves = generatePossibleMoves();
+    }
+    return moves;
 }
 
 set<string> GameState::generatePossibleMoves()
@@ -271,6 +343,7 @@ void GameState::getAllKingMoves(int row, int column, set<string> &moves)
 
 void GameState::checkForPinsAndChecks()
 {
+    cout << "checking for Pins and Checks" << endl;
     vector<array<int, 4>> pins = {};
     vector<array<int, 4>> checks = {};
     bool inCheck = false;
@@ -278,11 +351,11 @@ void GameState::checkForPinsAndChecks()
     char allyColor;
     int startRow;
     int startCol;
-    int directions[8][2] = {{0, 1},
+    int directions[8][2] = {{0, 1}, // rook moves
                             {-1, 0},
                             {1, 0},
                             {0, -1},
-                            {-1, 1},
+                            {-1, 1}, // bishop moves
                             {-1, -1},
                             {1, 1},
                             {1, -1}};
@@ -301,7 +374,7 @@ void GameState::checkForPinsAndChecks()
         startRow = this->blackKingLocation[0];
         startCol = this->blackKingLocation[1];
     }
-
+    
     for (int j = 0; j < 8; j++)
     {
         int dir[2] = {};
@@ -335,7 +408,7 @@ void GameState::checkForPinsAndChecks()
                         (i == 1 && type == 'K') ||
                         (i == 1 && type == 'P' && ((enemyColor == 'w' && j >= 6 && j <= 7) || (enemyColor == 'b' && j >= 4 && j <= 5))))
                     {
-                        if (possiblePins.empty())
+                        if (possiblePins.empty()) // no piece blocking, so check
                         {
                             inCheck = true;
                             checks.push_back({endRow, endCol, dir[0], dir[1]});
@@ -347,14 +420,37 @@ void GameState::checkForPinsAndChecks()
                             break;
                         }
                     }
-                    else
+                    else // enemy piece not applying check
                     {
                         break;
                     }
                 }
             }
+            else
+            {
+                break; // off the board
+            }
         }
     }
+    // check for knight checks
+    int knightMoves[8][2] = {{-2, -1}, {-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}};
+    for (auto &move : knightMoves)
+    {
+        int endRow = startRow + move[0];
+        int endCol = startCol + move[1];
+        if (0 <= endRow && endRow <= 7 && 0 <= endCol && endCol <= 7)
+        {
+            string endPiece = board[endRow][endCol];
+            if (endPiece[0] == enemyColor && endPiece[1] == 'N')
+            {
+                inCheck == true;
+                checks.push_back({endRow, endCol, move[0], move[1]});
+            }
+        }
+    }
+    this->inCheck = inCheck;
+    this->checks = checks;
+    this->pins = pins;
 }
 
 void GameState::makeMove(string move)
@@ -364,8 +460,19 @@ void GameState::makeMove(string move)
     int endCol = move[2] - 'a';
     int endRow = 8 - (move[3] - '0');
 
+    char pieceMoved = board[startRow][startCol][1];
+    char color = board[startRow][startCol][0];
+
+    if (pieceMoved == 'K') {
+        if (color == 'w') {
+            whiteKingLocation = {endRow, endCol};
+        } else {
+            blackKingLocation = {endRow, endCol};
+        }
+    }
     board[endRow][endCol] = board[startRow][startCol];
     board[startRow][startCol] = "--";
+
 
     movelog.push_back(move);
     whiteToMove = !whiteToMove;
