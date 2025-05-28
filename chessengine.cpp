@@ -448,6 +448,9 @@ void GameState::checkForPinsAndChecks()
             }
         }
     }
+
+    cout << "This.incheck: " << this->inCheck << endl << "incheck: " << inCheck << endl;
+
     this->inCheck = inCheck;
     this->checks = checks;
     this->pins = pins;
