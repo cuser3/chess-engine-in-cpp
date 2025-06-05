@@ -7,6 +7,18 @@
 
 using namespace std;
 
+sf::Sprite createSprite(std::string texturePath, sf::Texture &texture, float squareSize)
+{
+    if (!texture.loadFromFile(texturePath))
+    {
+        std::cerr << "Error: Could not load texture from " << texturePath << std::endl;
+        exit(1);
+    }
+    sf::Sprite sprite(texture);
+    sprite.setScale(sf::Vector2f(squareSize / texture.getSize().x, squareSize / texture.getSize().y));
+    return sprite;
+}
+
 int main()
 {
     GameState gamestate;
@@ -20,137 +32,69 @@ int main()
 
     // Pawns
     sf::Texture whitePawnTexture;
-    if (!whitePawnTexture.loadFromFile("Assets/white-pawn.png"))
-    {
-        std::cerr << "Error: Could not load white pawn texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite whitePawn = sf::Sprite(whitePawnTexture);
-    whitePawn.setScale(sf::Vector2f(squareSize / whitePawnTexture.getSize().x, squareSize / whitePawnTexture.getSize().y));
+    sf::Sprite whitePawn = createSprite("Assets/white-pawn.png", whitePawnTexture, squareSize);
 
     sf::Texture blackPawnTexture;
-    if (!blackPawnTexture.loadFromFile("Assets/black-pawn.png"))
-    {
-        std::cerr << "Error: Could not load white pawn texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite blackPawn = sf::Sprite(blackPawnTexture);
-    blackPawn.setScale(sf::Vector2f(squareSize / blackPawnTexture.getSize().x, squareSize / blackPawnTexture.getSize().y));
+    sf::Sprite blackPawn = createSprite("Assets/black-pawn.png", blackPawnTexture, squareSize);
 
     // Rooks
     sf::Texture whiteRookTexture;
-    if (!whiteRookTexture.loadFromFile("Assets/white-rook.png"))
-    {
-        std::cerr << "Error: Could not load white rook texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite whiteRook = sf::Sprite(whiteRookTexture);
-    whiteRook.setScale(sf::Vector2f(squareSize / whiteRookTexture.getSize().x, squareSize / whiteRookTexture.getSize().y));
+    sf::Sprite whiteRook = createSprite("Assets/white-rook.png", whiteRookTexture, squareSize);
 
     sf::Texture blackRookTexture;
-    if (!blackRookTexture.loadFromFile("Assets/black-rook.png"))
-    {
-        std::cerr << "Error: Could not load white rook texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite blackRook = sf::Sprite(blackRookTexture);
-    blackRook.setScale(sf::Vector2f(squareSize / blackRookTexture.getSize().x, squareSize / blackRookTexture.getSize().y));
-
+    sf::Sprite blackRook = createSprite("Assets/black-rook.png", blackRookTexture, squareSize);
 
     // Knights
     sf::Texture whiteKnightTexture;
-    if (!whiteKnightTexture.loadFromFile("Assets/white-knight.png"))
-    {
-        std::cerr << "Error: Could not load white knight texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite whiteKnight = sf::Sprite(whiteKnightTexture);
-    whiteKnight.setScale(sf::Vector2f(squareSize / whiteKnightTexture.getSize().x, squareSize / whiteKnightTexture.getSize().y));
+    sf::Sprite whiteKnight = createSprite("Assets/white-knight.png", whiteKnightTexture, squareSize);
 
     sf::Texture blackKnightTexture;
-    if (!blackKnightTexture.loadFromFile("Assets/black-knight.png"))
-    {
-        std::cerr << "Error: Could not load white rook texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite blackKnight = sf::Sprite(blackKnightTexture);
-    blackKnight.setScale(sf::Vector2f(squareSize / blackKnightTexture.getSize().x, squareSize / blackKnightTexture.getSize().y));
-
+    sf::Sprite blackKnight = createSprite("Assets/black-knight.png", blackKnightTexture, squareSize);
 
     // Bishops
     sf::Texture whiteBishopTexture;
-    if (!whiteBishopTexture.loadFromFile("Assets/white-bishop.png"))
-    {
-        std::cerr << "Error: Could not load white bishop texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite whiteBishop = sf::Sprite(whiteBishopTexture);
-    whiteBishop.setScale(sf::Vector2f(squareSize / whiteBishopTexture.getSize().x, squareSize / whiteBishopTexture.getSize().y));
+    sf::Sprite whiteBishop = createSprite("Assets/white-bishop.png", whiteBishopTexture, squareSize);
 
     sf::Texture blackBishopTexture;
-    if (!blackBishopTexture.loadFromFile("Assets/black-bishop.png"))
-    {
-        std::cerr << "Error: Could not load black bishop texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite blackBishop = sf::Sprite(blackBishopTexture);
-    blackBishop.setScale(sf::Vector2f(squareSize / blackBishopTexture.getSize().x, squareSize / blackBishopTexture.getSize().y));
+    sf::Sprite blackBishop = createSprite("Assets/black-bishop.png", blackBishopTexture, squareSize);
 
     // Queens
     sf::Texture whiteQueenTexture;
-    if (!whiteQueenTexture.loadFromFile("Assets/white-queen.png"))
-    {
-        std::cerr << "Error: Could not load white queen texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite whiteQueen = sf::Sprite(whiteQueenTexture);
-    whiteQueen.setScale(sf::Vector2f(squareSize / whiteQueenTexture.getSize().x, squareSize / whiteQueenTexture.getSize().y));
+    sf::Sprite whiteQueen = createSprite("Assets/white-queen.png", whiteQueenTexture, squareSize);
 
     sf::Texture blackQueenTexture;
-    if (!blackQueenTexture.loadFromFile("Assets/black-queen.png"))
-    {
-        std::cerr << "Error: Could not load black queen texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite blackQueen = sf::Sprite(blackQueenTexture);
-    blackQueen.setScale(sf::Vector2f(squareSize / blackQueenTexture.getSize().x, squareSize / blackQueenTexture.getSize().y));
+    sf::Sprite blackQueen = createSprite("Assets/black-queen.png", blackQueenTexture, squareSize);
 
     // Kings
     sf::Texture whiteKingTexture;
-    if (!whiteKingTexture.loadFromFile("Assets/white-king.png"))
-    {
-        std::cerr << "Error: Could not load white king texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite whiteKing = sf::Sprite(whiteKingTexture);
-    whiteKing.setScale(sf::Vector2f(squareSize / whiteKingTexture.getSize().x, squareSize / whiteKingTexture.getSize().y));
-    
+    sf::Sprite whiteKing = createSprite("Assets/white-king.png", whiteKingTexture, squareSize);
+
     sf::Texture blackKingTexture;
-    if (!blackKingTexture.loadFromFile("Assets/black-king.png"))
-    {
-        std::cerr << "Error: Could not load black king texture!" << std::endl;
-        return 1;
-    }
-    sf::Sprite blackKing = sf::Sprite(blackKingTexture);
-    blackKing.setScale(sf::Vector2f(squareSize / blackKingTexture.getSize().x, squareSize / blackKingTexture.getSize().y));
+    sf::Sprite blackKing = createSprite("Assets/black-king.png", blackKingTexture, squareSize);
 
-
-
-
-
-
+    // Create the main window
     sf::RenderWindow window(sf::VideoMode({800, 600}), "Chess Engine");
     window.setVerticalSyncEnabled(true);
 
-    // run the program as long as the window is open
+    // Run the program as long as the window is open
     while (window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
         while (const std::optional event = window.pollEvent())
         {
-            // "close requested" event: we close the window
             if (event->is<sf::Event::Closed>())
                 window.close();
+
+            // Handle mouse button presses
+            if (const auto* mouseButtonpressed = event->getIf<sf::Event::MouseButtonPressed>())
+            {
+                if (mouseButtonpressed->button == sf::Mouse::Button::Left)
+                {
+                    std::cout << "Left Mouse Button Pressed" << std::endl;
+                    std::cout << "mouse x: " << mouseButtonpressed->position.x << std::endl;
+                    std::cout << "mouse y: " << mouseButtonpressed->position.y << std::endl;
+                }
+            }
         }
         // clear the window with black color
         window.clear(sf::Color::Black);
