@@ -30,6 +30,9 @@ int main()
     const sf::Color lightColor = sf::Color(240, 217, 181);
     const sf::Color darkColor = sf::Color(181, 136, 99);
 
+    bool pieceSelected = false;
+    std::pair<int, int> selectedSquare = {-1, -1};
+
     // Pawns
     sf::Texture whitePawnTexture;
     sf::Sprite whitePawn = createSprite("Assets/white-pawn.png", whitePawnTexture, squareSize);
@@ -73,7 +76,7 @@ int main()
     sf::Sprite blackKing = createSprite("Assets/black-king.png", blackKingTexture, squareSize);
 
     // Create the main window
-    sf::RenderWindow window(sf::VideoMode({800, 600}), "Chess Engine");
+    sf::RenderWindow window(sf::VideoMode({480, 480}), "Chess Engine");
     window.setVerticalSyncEnabled(true);
 
     // Run the program as long as the window is open
@@ -86,13 +89,48 @@ int main()
                 window.close();
 
             // Handle mouse button presses
-            if (const auto* mouseButtonpressed = event->getIf<sf::Event::MouseButtonPressed>())
+            if (const auto *mouseButtonpressed = event->getIf<sf::Event::MouseButtonPressed>())
             {
                 if (mouseButtonpressed->button == sf::Mouse::Button::Left)
                 {
                     std::cout << "Left Mouse Button Pressed" << std::endl;
                     std::cout << "mouse x: " << mouseButtonpressed->position.x << std::endl;
                     std::cout << "mouse y: " << mouseButtonpressed->position.y << std::endl;
+                    int col = mouseButtonpressed->position.x / squareSize;
+                    int row = mouseButtonpressed->position.y / squareSize;
+                    std::cout << "col: " << col << ", row: " << row << std::endl;
+
+                    if (!pieceSelected)
+                    {
+                        if (gamestate.board[row][col] != "--")
+                        {
+                            selectedSquare = {col, row};
+                            pieceSelected = true;
+                            std::cout << "Piece selected at: " << selectedSquare.first << ", " << selectedSquare.second << std::endl;
+                            gamestate.displayBoard();
+                        }
+                    }
+                    else
+                    {
+                        int startRow = selectedSquare.second;
+                        int startCol = selectedSquare.first;
+                        std::string move = gamestate.convertToMove(startRow, startCol, row, col);
+                        std::cout << "Attempting to make move: " << move << std::endl;
+                        std::set<std::string> validMoves = gamestate.getValidMoves();
+                        for (auto &move : validMoves)
+                        {
+                            cout << "Move: " << move << " ";
+                        }
+                        if (validMoves.count(move))
+                        {
+                            gamestate.makeMove(move);
+                            gamestate.displayBoard();
+                            std::cout << "Move made: " << move << std::endl;
+                        }
+                        pieceSelected = false;
+                        selectedSquare = {-1, -1};
+                        std::cout << "\n Piece unselected" << endl;
+                    }
                 }
             }
         }
@@ -113,87 +151,29 @@ int main()
                 else
                     square.setFillColor(darkColor);
                 window.draw(square);
+                
 
                 // Draw pieces
-                if (row == 0 || row == 7)
-                {
-                    if (col == 0 || col == 7)
-                    {
-                        if (row == 0)
-                        {
-                            blackRook.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(blackRook);
-                        }
-                        else
-                        {
-                            whiteRook.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(whiteRook);
-                        }
-                    }
-                    if (col == 1 || col == 6)
-                    {
-                        if (row == 0)
-                        {
-                            blackKnight.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(blackKnight);
-                        }
-                        else
-                        {
-                            whiteKnight.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(whiteKnight);
-                        }
-                    }
-                    if (col == 2 || col == 5)
-                    {
-                        if (row == 0)
-                        {
-                            blackBishop.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(blackBishop);
-                        }
-                        else
-                        {
-                            whiteBishop.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(whiteBishop);
-                        }
-                    }
-                    if (col == 3)
-                    {
-                        if (row == 0)
-                        {
-                            blackQueen.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(blackQueen);
-                        }
-                        else
-                        {
-                            whiteQueen.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(whiteQueen);
-                        }
-                    }
-                    if (col == 4)
-                    {
-                        if (row == 0)
-                        {
-                            blackKing.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(blackKing);
-                        }
-                        else
-                        {
-                            whiteKing.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                            window.draw(whiteKing);
-                        }
-                    }
-                }
+                std::string piece = gamestate.board[row][col];
+                sf::Sprite *sprite = nullptr;
 
-                if (row == 1)
-                {
-                    blackPawn.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                    window.draw(blackPawn);
-                }
+                if (piece == "wP") sprite = &whitePawn;
+                else if (piece == "bP") sprite = &blackPawn;
+                else if (piece == "wR") sprite = &whiteRook;
+                else if (piece == "bR") sprite = &blackRook;
+                else if (piece == "wN") sprite = &whiteKnight;
+                else if (piece == "bN") sprite = &blackKnight;
+                else if (piece == "wB") sprite = &whiteBishop;
+                else if (piece == "bB") sprite = &blackBishop;
+                else if (piece == "wQ") sprite = &whiteQueen;
+                else if (piece == "bQ") sprite = &blackQueen;
+                else if (piece == "wK") sprite = &whiteKing;
+                else if (piece == "bK") sprite = &blackKing;
 
-                if (row == 6)
+                if (sprite)
                 {
-                    whitePawn.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
-                    window.draw(whitePawn);
+                    sprite->setPosition(sf::Vector2f(col * squareSize, row * squareSize));
+                    window.draw(*sprite);
                 }
             }
         }
