@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <array>
 #include "chessengine.h"
 
 using namespace std;
@@ -58,6 +59,7 @@ set<string> GameState::getValidMoves()
     int kingRow;
     int kingCol;
     checkForPinsAndChecks();
+    std::cout << "getValidMoves called" << std::endl;
     if (whiteToMove)
     {
         kingRow = whiteKingLocation[0];
@@ -68,17 +70,20 @@ set<string> GameState::getValidMoves()
         kingRow = blackKingLocation[0];
         kingCol = blackKingLocation[1];
     }
-    if (inCheck)
+    std::cout << "inCheck: " << this->inCheck << std::endl;
+    if (this->inCheck)
     {
-        if (checks.size() == 1)
+        if (this->checks.size() == 1) // if King is checked by only one piece, either block the check or capture the piece
         {
             moves = generatePossibleMoves();
             array<int, 4> check = checks[0];
+            std::cout << "Check: " << check[0] << ", " << check[1] << ", " << check[2] << ", " << check[3] << std::endl;
             int checkRow = check[0];
             int checkCol = check[1];
             string pieceChecking = board[checkRow][checkCol];
+            std::cout << "Piece checking: " << pieceChecking << std::endl;
             vector<array<int, 2>> validSquares = {};
-            if (pieceChecking[1] == 'N')
+            if (pieceChecking[1] == 'N') // If Knight checks, has to be captured or King must move
             {
                 validSquares.push_back({checkRow, checkCol});
             }
@@ -86,42 +91,45 @@ set<string> GameState::getValidMoves()
             {
                 for (int i = 0; i < 8; i++)
                 {
-                    array<int, 2> validSquare = {kingRow + check[2] * i, kingCol + check[3] * i};
+                    array<int, 2> validSquare = {kingRow + check[2] * i, kingCol + check[3] * i}; // check[2] and check[3] are direction vectors
                     validSquares.push_back(validSquare);
-                    if (validSquare[0] == checkRow && validSquare[1] == checkCol)
+                    if (validSquare[0] == checkRow && validSquare[1] == checkCol) // Break when checking piece is reached
                     {
                         break;
                     }
                 }
             }
+            // get rid of all moves that don't block the check or move King
             for (auto it = moves.begin(); it != moves.end();)
             {
                 string move = *it;
+                std::cout << "Move: " << move << std::endl;
                 int startCol = move[0] - 'a';
                 int startRow = 8 - (move[1] - '0');
                 int endCol = move[2] - 'a';
                 int endRow = 8 - (move[3] - '0');
                 string movedPiece = board[startRow][startCol];
-                if (movedPiece[1] != 'K') //move doesn't move King so it must be block or capture move
+                if (movedPiece[1] != 'K') // move doesn't move King so it must be block or capture move
                 {
                     array<int, 2> item = {endRow, endCol};
-                    if (std::find(validSquares.begin(), validSquares.end(), item) == validSquares.end()) { //move doesn't block check or capture
+                    if (std::find(validSquares.begin(), validSquares.end(), item) == validSquares.end())
+                    { // move doesn't block check or capture
                         it = moves.erase(it);
                         cout << "move erased" << endl;
+                        continue;
                     }
-                } else {
-                    ++it;
                 }
+                ++it;
             }
         }
         else
         {
-            getAllKingMoves(kingRow, kingCol, moves);
+            getAllKingMoves(kingRow, kingCol, moves); // If double check, King has to move
         }
     }
     else
     {
-        moves = generatePossibleMoves();
+        moves = generatePossibleMoves(); // King not in check, so all moves are valid
     }
     return moves;
 }
@@ -167,32 +175,56 @@ set<string> GameState::generatePossibleMoves()
 
 void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
 {
+    bool piecePinned = false;
+    std::array<int, 2> pinDirection = {0, 0};
+    for (int i = static_cast<int>(this->pins.size()) - 1; i >= 0; i--)
+    {
+        if (this->pins[i][0] == row && this->pins[i][1] == column)
+        {
+            piecePinned = true;
+            pinDirection[0] = this->pins[i][2];
+            pinDirection[1] = this->pins[i][3];
+            this->pins.erase(this->pins.begin() + i);
+            break;
+        }
+    }
+
     if (whiteToMove)
     {
         if (board[row - 1][column] == "--")
         {
-            string move = convertToMove(row, column, row - 1, column);
-            moves.insert(move);
-            if ((row == 6) && (board[row - 2][column] == "--"))
+            if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == 0))
             {
-                move = convertToMove(row, column, row - 2, column);
+                string move = convertToMove(row, column, row - 1, column);
                 moves.insert(move);
+                if ((row == 6) && (board[row - 2][column] == "--"))
+                {
+                    move = convertToMove(row, column, row - 2, column);
+                    moves.insert(move);
+                }
             }
         }
+        // captures
         if (column - 1 >= 0)
         {
             if (board[row - 1][column - 1][0] == 'b')
             {
-                string move = convertToMove(row, column, row - 1, column - 1);
-                moves.insert(move);
+                if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == -1))
+                {
+                    string move = convertToMove(row, column, row - 1, column - 1);
+                    moves.insert(move);
+                }
             }
-        }
-        if (column + 1 <= 7)
-        {
-            if (board[row - 1][column + 1][0] == 'b')
+            if (column + 1 <= 7)
             {
-                string move = convertToMove(row, column, row - 1, column + 1);
-                moves.insert(move);
+                if (board[row - 1][column + 1][0] == 'b')
+                {
+                    if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == 1))
+                    {
+                        string move = convertToMove(row, column, row - 1, column + 1);
+                        moves.insert(move);
+                    }
+                }
             }
         }
     }
@@ -204,24 +236,33 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
             moves.insert(move);
             if ((row == 1) && (board[row + 2][column] == "--"))
             {
-                move = convertToMove(row, column, row + 2, column);
-                moves.insert(move);
+                if (!piecePinned || (pinDirection[0] == 2 && pinDirection[1] == 0))
+                {
+                    move = convertToMove(row, column, row + 2, column);
+                    moves.insert(move);
+                }
             }
         }
         if (column - 1 >= 0)
         {
             if (board[row + 1][column - 1][0] == 'w')
             {
-                string move = convertToMove(row, column, row + 1, column - 1);
-                moves.insert(move);
+                if (!piecePinned || (pinDirection[0] == 1 && pinDirection[1] == -1))
+                {
+                    string move = convertToMove(row, column, row + 1, column - 1);
+                    moves.insert(move);
+                }
             }
         }
         if (column + 1 <= 7)
         {
             if (board[row + 1][column + 1][0] == 'w')
             {
-                string move = convertToMove(row, column, row + 1, column + 1);
-                moves.insert(move);
+                if (!piecePinned || (pinDirection[0] == 1 && pinDirection[1] == 1))
+                {
+                    string move = convertToMove(row, column, row + 1, column + 1);
+                    moves.insert(move);
+                }
             }
         }
     }
@@ -229,6 +270,20 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
 
 void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
 {
+    bool piecePinned = false;
+    std::array<int, 2> pinDirection = {0, 0};
+    for (int i = static_cast<int>(this->pins.size()) - 1; i >= 0; i--)
+    {
+        if (this->pins[i][0] == row && this->pins[i][1] == column)
+        {
+            piecePinned = true;
+            pinDirection[0] = this->pins[i][2];
+            pinDirection[1] = this->pins[i][3];
+            this->pins.erase(this->pins.begin() + i);
+            break;
+        }
+    }
+
     int directions[4][2] = {{-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
 
     for (auto &direction : directions)
@@ -238,8 +293,11 @@ void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
 
         while (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--")
         {
-            string move = convertToMove(row, column, r, c);
-            moves.insert(move);
+            if (!piecePinned || (pinDirection[0] == direction[0] && pinDirection[1] == direction[1]) || (pinDirection[0] == -direction[0] && pinDirection[1] == -direction[1]))
+            {
+                string move = convertToMove(row, column, r, c);
+                moves.insert(move);
+            }
             r += direction[0];
             c += direction[1];
         }
@@ -248,8 +306,11 @@ void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
         {
             if ((whiteToMove && board[r][c][0] == 'b') || (!whiteToMove && board[r][c][0] == 'w'))
             {
-                string move = convertToMove(row, column, r, c);
-                moves.insert(move);
+                if (!piecePinned || (pinDirection[0] == direction[0] && pinDirection[1] == direction[1]) || (pinDirection[0] == -direction[0] && pinDirection[1] == -direction[1]))
+                {
+                    string move = convertToMove(row, column, r, c);
+                    moves.insert(move);
+                }
             }
         }
     }
@@ -257,6 +318,17 @@ void GameState::getAllBishopMoves(int row, int column, set<string> &moves)
 
 void GameState::getAllKnightMoves(int row, int column, set<string> &moves)
 {
+    bool piecePinned = false;
+    for (int i = static_cast<int>(this->pins.size()) - 1; i >= 0; i--)
+    {
+        if (this->pins[i][0] == row && this->pins[i][1] == column)
+        {
+            piecePinned = true;
+            this->pins.erase(this->pins.begin() + i);
+            break;
+        }
+    }
+
     int knightMoves[8][2] = {{-2, -1}, {-2, 1}, {-1, 2}, {1, 2}, {2, 1}, {2, -1}, {1, -2}, {-1, -2}};
 
     for (auto &knightMove : knightMoves)
@@ -266,16 +338,22 @@ void GameState::getAllKnightMoves(int row, int column, set<string> &moves)
 
         if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--")
         {
-            string move = convertToMove(row, column, r, c);
-            moves.insert(move);
+            if (!piecePinned)
+            {
+                string move = convertToMove(row, column, r, c);
+                moves.insert(move);
+            }
         }
 
         if (r >= 0 && r <= 7 && c >= 0 && c <= 7)
         {
             if ((whiteToMove && board[r][c][0] == 'b') || (!whiteToMove && board[r][c][0] == 'w'))
             {
-                string move = convertToMove(row, column, r, c);
-                moves.insert(move);
+                if (!piecePinned)
+                {
+                    string move = convertToMove(row, column, r, c);
+                    moves.insert(move);
+                }
             }
         }
     }
@@ -283,6 +361,23 @@ void GameState::getAllKnightMoves(int row, int column, set<string> &moves)
 
 void GameState::getAllRookMoves(int row, int column, set<string> &moves)
 {
+    bool piecePinned = false;
+    std::array<int, 2> pinDirection = {0, 0};
+    for (int i = static_cast<int>(this->pins.size()) - 1; i >= 0; i--)
+    {
+        if (this->pins[i][0] == row && this->pins[i][1] == column)
+        {
+            piecePinned = true;
+            pinDirection[0] = this->pins[i][2];
+            pinDirection[1] = this->pins[i][3];
+            if (board[row][column][1] != 'Q')
+            { // don't remove Queen from pin on Rook moves, only on Bishop moves
+                this->pins.erase(this->pins.begin() + i);
+            }
+            break;
+        }
+    }
+
     int directions[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
     for (auto &direction : directions)
@@ -292,8 +387,11 @@ void GameState::getAllRookMoves(int row, int column, set<string> &moves)
 
         while (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--")
         {
-            string move = convertToMove(row, column, r, c);
-            moves.insert(move);
+            if (!piecePinned || (pinDirection[0] == direction[0] && pinDirection[1] == direction[1]) || (pinDirection[0] == -direction[0] && pinDirection[1] == -direction[1]))
+            {
+                string move = convertToMove(row, column, r, c);
+                moves.insert(move);
+            }
             r += direction[0];
             c += direction[1];
         }
@@ -302,8 +400,11 @@ void GameState::getAllRookMoves(int row, int column, set<string> &moves)
         {
             if ((whiteToMove && board[r][c][0] == 'b') || (!whiteToMove && board[r][c][0] == 'w'))
             {
-                string move = convertToMove(row, column, r, c);
-                moves.insert(move);
+                if (!piecePinned || (pinDirection[0] == direction[0] && pinDirection[1] == direction[1]) || (pinDirection[0] == -direction[0] && pinDirection[1] == -direction[1]))
+                {
+                    string move = convertToMove(row, column, r, c);
+                    moves.insert(move);
+                }
             }
         }
     }
@@ -315,6 +416,8 @@ void GameState::getAllQueenMoves(int row, int column, set<string> &moves)
     getAllBishopMoves(row, column, moves);
 }
 
+
+// TODO: maybe find more efficient way
 void GameState::getAllKingMoves(int row, int column, set<string> &moves)
 {
     int kingMoves[8][2] = {{-1, 0}, {-1, 1}, {0, 1}, {1, 1}, {1, 0}, {1, -1}, {0, -1}, {-1, -1}};
@@ -323,22 +426,50 @@ void GameState::getAllKingMoves(int row, int column, set<string> &moves)
     {
         int r = row + kingMove[0];
         int c = column + kingMove[1];
+        if (whiteToMove)
+        {
+            this->whiteKingLocation[0] = r;
+            this->whiteKingLocation[1] = c;
+        }
+        else
+        {
+            this->blackKingLocation[0] = r;
+            this->blackKingLocation[1] = c;
+        }
+        checkForPinsAndChecks();
 
         if (r >= 0 && r <= 7 && c >= 0 && c <= 7 && board[r][c] == "--")
         {
-            string move = convertToMove(row, column, r, c);
-            moves.insert(move);
+            if (!this->inCheck)
+            {
+                string move = convertToMove(row, column, r, c);
+                moves.insert(move);
+            }
         }
 
         if (r >= 0 && r <= 7 && c >= 0 && c <= 7)
         {
             if ((whiteToMove && board[r][c][0] == 'b') || (!whiteToMove && board[r][c][0] == 'w'))
             {
-                string move = convertToMove(row, column, r, c);
-                moves.insert(move);
+                if (!this->inCheck)
+                {
+                    string move = convertToMove(row, column, r, c);
+                    moves.insert(move);
+                }
             }
         }
+        if (whiteToMove)
+        {
+            this->whiteKingLocation[0] = row;
+            this->whiteKingLocation[1] = column;
+        }
+        else
+        {
+            this->blackKingLocation[0] = row;
+            this->blackKingLocation[1] = column;
+        }
     }
+    checkForPinsAndChecks();
 }
 
 void GameState::checkForPinsAndChecks()
@@ -360,6 +491,7 @@ void GameState::checkForPinsAndChecks()
                             {1, 1},
                             {1, -1}};
 
+    cout << "whiteToMove: " << whiteToMove << endl;
     if (whiteToMove)
     {
         enemyColor = 'b';
@@ -374,29 +506,35 @@ void GameState::checkForPinsAndChecks()
         startRow = this->blackKingLocation[0];
         startCol = this->blackKingLocation[1];
     }
-    
+
+    std::cout << "startRow: " << startRow << ", startCol: " << startCol << ", allyColor: " << allyColor << std::endl;
+
     for (int j = 0; j < 8; j++)
     {
         int dir[2] = {};
         dir[0] = directions[j][0];
         dir[1] = directions[j][1];
-        array<int, 4> possiblePins = {};
+        std::cout << "Checking direction: " << dir[0] << ", " << dir[1] << std::endl;
+        array<int, 4> possiblePin = {-1, -1, 0, 0};
         for (int i = 1; i < 8; i++)
         {
+            std::cout << "Checking square: " << startRow + dir[0] * i << ", " << startCol + dir[1] * i << std::endl;
             int endRow = startRow + dir[0] * i;
             int endCol = startCol + dir[1] * i;
             if (endRow >= 0 && endRow <= 7 && endCol >= 0 && endCol <= 7)
             {
                 string endPiece = board[endRow][endCol];
+                std::cout << "End piece: " << endPiece << std::endl;
                 if (endPiece[0] == allyColor)
                 {
-                    if (possiblePins.empty())
+                    if (possiblePin == array<int, 4>{-1, -1, 0, 0})
                     {
-                        possiblePins = {startRow, startCol, dir[0], dir[1]};
+                        possiblePin = {endRow, endCol, dir[0], dir[1]};
+                        std::cout << "Possible pin found at: " << endRow << ", " << endCol << std::endl;
                     }
                     else
                     {
-                        break;
+                        break; // second ally piece, so no pin possible
                     }
                 }
                 else if (endPiece[0] == enemyColor)
@@ -408,21 +546,23 @@ void GameState::checkForPinsAndChecks()
                         (i == 1 && type == 'K') ||
                         (i == 1 && type == 'P' && ((enemyColor == 'w' && j >= 6 && j <= 7) || (enemyColor == 'b' && j >= 4 && j <= 5))))
                     {
-                        if (possiblePins.empty()) // no piece blocking, so check
+                        std::cout << "Possible pin: " << possiblePin[0] << ", " << possiblePin[1] << ", " << possiblePin[2] << ", " << possiblePin[3] << std::endl;
+                        if (possiblePin == array<int, 4>{-1, -1, 0, 0}) // no piece blocking, so check
                         {
                             inCheck = true;
+                            std::cout << "Check found at: " << endRow << ", " << endCol << std::endl;
                             checks.push_back({endRow, endCol, dir[0], dir[1]});
                             break;
                         }
                         else
                         {
-                            pins.push_back(possiblePins);
+                            pins.push_back(possiblePin);
                             break;
                         }
                     }
-                    else // enemy piece not applying check
+                    else
                     {
-                        break;
+                        break; // enemy piece not applying check
                     }
                 }
             }
@@ -443,17 +583,18 @@ void GameState::checkForPinsAndChecks()
             string endPiece = board[endRow][endCol];
             if (endPiece[0] == enemyColor && endPiece[1] == 'N')
             {
-                inCheck == true;
+                inCheck = true;
                 checks.push_back({endRow, endCol, move[0], move[1]});
             }
         }
     }
 
-    cout << "This.incheck: " << this->inCheck << endl << "incheck: " << inCheck << endl;
-
     this->inCheck = inCheck;
     this->checks = checks;
     this->pins = pins;
+
+    std::cout << "Pins: " << pins.size() << std::endl;
+    std::cout << "Checks: " << checks.size() << std::endl;
 }
 
 void GameState::makeMove(string move)
@@ -466,16 +607,21 @@ void GameState::makeMove(string move)
     char pieceMoved = board[startRow][startCol][1];
     char color = board[startRow][startCol][0];
 
-    if (pieceMoved == 'K') {
-        if (color == 'w') {
-            whiteKingLocation = {endRow, endCol};
-        } else {
-            blackKingLocation = {endRow, endCol};
+    if (pieceMoved == 'K')
+    {
+        if (color == 'w')
+        {
+            this->whiteKingLocation = {endRow, endCol};
+        }
+        else
+        {
+            this->blackKingLocation = {endRow, endCol};
         }
     }
+    std::cout << "White King Location: " << this->whiteKingLocation[0] << ", " << this->whiteKingLocation[1] << std::endl;
+    std::cout << "Black King Location: " << this->blackKingLocation[0] << ", " << this->blackKingLocation[1] << std::endl;
     board[endRow][endCol] = board[startRow][startCol];
     board[startRow][startCol] = "--";
-
 
     movelog.push_back(move);
     whiteToMove = !whiteToMove;

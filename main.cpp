@@ -93,12 +93,8 @@ int main()
             {
                 if (mouseButtonpressed->button == sf::Mouse::Button::Left)
                 {
-                    std::cout << "Left Mouse Button Pressed" << std::endl;
-                    std::cout << "mouse x: " << mouseButtonpressed->position.x << std::endl;
-                    std::cout << "mouse y: " << mouseButtonpressed->position.y << std::endl;
-                    int col = mouseButtonpressed->position.x / squareSize;
-                    int row = mouseButtonpressed->position.y / squareSize;
-                    std::cout << "col: " << col << ", row: " << row << std::endl;
+                    int col = static_cast<int>(mouseButtonpressed->position.x / squareSize);
+                    int row = static_cast<int>(mouseButtonpressed->position.y / squareSize);
 
                     if (!pieceSelected)
                     {
@@ -106,8 +102,7 @@ int main()
                         {
                             selectedSquare = {col, row};
                             pieceSelected = true;
-                            std::cout << "Piece selected at: " << selectedSquare.first << ", " << selectedSquare.second << std::endl;
-                            gamestate.displayBoard();
+                            // gamestate.displayBoard();
                         }
                     }
                     else
@@ -115,21 +110,14 @@ int main()
                         int startRow = selectedSquare.second;
                         int startCol = selectedSquare.first;
                         std::string move = gamestate.convertToMove(startRow, startCol, row, col);
-                        std::cout << "Attempting to make move: " << move << std::endl;
                         std::set<std::string> validMoves = gamestate.getValidMoves();
-                        for (auto &move : validMoves)
-                        {
-                            cout << "Move: " << move << " ";
-                        }
                         if (validMoves.count(move))
                         {
                             gamestate.makeMove(move);
-                            gamestate.displayBoard();
-                            std::cout << "Move made: " << move << std::endl;
+                            //gamestate.displayBoard();
                         }
                         pieceSelected = false;
                         selectedSquare = {-1, -1};
-                        std::cout << "\n Piece unselected" << endl;
                     }
                 }
             }
@@ -181,29 +169,5 @@ int main()
         window.display();
     }
 
-    // while (true)
-    // {
-    //     gamestate.displayBoard();
-    //     set<string> validMoves = gamestate.getValidMoves();
-    //     for (auto &move : validMoves) {
-    //         cout << "Move: " << move;
-    //     }
-    //     cout << "Enter your move (e.g., e2e4) or 'q' to quit: " << endl;
-    //     cin >> move;
-
-    //     if (move == "q")
-    //     {
-    //         break;
-    //     }
-
-    //     if (validMoves.count(move))
-    //     {
-    //         gamestate.makeMove(move);
-    //     }
-    //     else
-    //     {
-    //         cout << "Invalid move. Please try again." << endl;
-    //     }
-    // }
     return 0;
 }
