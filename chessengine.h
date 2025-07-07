@@ -20,6 +20,8 @@ public:
     bool inCheck;
     vector<array<int, 4>> pins;
     vector<array<int, 4>> checks;
+    bool checkmate;
+    bool stalemate;
 
     // Constructor
     GameState();

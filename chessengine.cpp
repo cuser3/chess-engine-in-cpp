@@ -18,6 +18,8 @@ GameState::GameState()
     movelog = {};
     checks = {};
     pins = {};
+    checkmate = false;
+    stalemate = false;
 
     string initialBoard[8][8] = {
         {"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
@@ -59,7 +61,6 @@ set<string> GameState::getValidMoves()
     int kingRow;
     int kingCol;
     checkForPinsAndChecks();
-    std::cout << "getValidMoves called" << std::endl;
     if (whiteToMove)
     {
         kingRow = whiteKingLocation[0];
@@ -70,18 +71,15 @@ set<string> GameState::getValidMoves()
         kingRow = blackKingLocation[0];
         kingCol = blackKingLocation[1];
     }
-    std::cout << "inCheck: " << this->inCheck << std::endl;
     if (this->inCheck)
     {
         if (this->checks.size() == 1) // if King is checked by only one piece, either block the check or capture the piece
         {
             moves = generatePossibleMoves();
             array<int, 4> check = checks[0];
-            std::cout << "Check: " << check[0] << ", " << check[1] << ", " << check[2] << ", " << check[3] << std::endl;
             int checkRow = check[0];
             int checkCol = check[1];
             string pieceChecking = board[checkRow][checkCol];
-            std::cout << "Piece checking: " << pieceChecking << std::endl;
             vector<array<int, 2>> validSquares = {};
             if (pieceChecking[1] == 'N') // If Knight checks, has to be captured or King must move
             {
@@ -103,7 +101,6 @@ set<string> GameState::getValidMoves()
             for (auto it = moves.begin(); it != moves.end();)
             {
                 string move = *it;
-                std::cout << "Move: " << move << std::endl;
                 int startCol = move[0] - 'a';
                 int startRow = 8 - (move[1] - '0');
                 int endCol = move[2] - 'a';
@@ -115,7 +112,6 @@ set<string> GameState::getValidMoves()
                     if (std::find(validSquares.begin(), validSquares.end(), item) == validSquares.end())
                     { // move doesn't block check or capture
                         it = moves.erase(it);
-                        cout << "move erased" << endl;
                         continue;
                     }
                 }
@@ -130,6 +126,20 @@ set<string> GameState::getValidMoves()
     else
     {
         moves = generatePossibleMoves(); // King not in check, so all moves are valid
+    }
+    if (moves.empty())
+    {
+        if(this->inCheck)
+        {
+            this->checkmate = true;
+        }
+        else
+        {
+            this->stalemate = true; 
+        }
+    } else {
+        this->checkmate = false;
+        this->stalemate = false;
     }
     return moves;
 }
@@ -474,7 +484,6 @@ void GameState::getAllKingMoves(int row, int column, set<string> &moves)
 
 void GameState::checkForPinsAndChecks()
 {
-    cout << "checking for Pins and Checks" << endl;
     vector<array<int, 4>> pins = {};
     vector<array<int, 4>> checks = {};
     bool inCheck = false;
@@ -491,7 +500,6 @@ void GameState::checkForPinsAndChecks()
                             {1, 1},
                             {1, -1}};
 
-    cout << "whiteToMove: " << whiteToMove << endl;
     if (whiteToMove)
     {
         enemyColor = 'b';
@@ -506,31 +514,24 @@ void GameState::checkForPinsAndChecks()
         startRow = this->blackKingLocation[0];
         startCol = this->blackKingLocation[1];
     }
-
-    std::cout << "startRow: " << startRow << ", startCol: " << startCol << ", allyColor: " << allyColor << std::endl;
-
     for (int j = 0; j < 8; j++)
     {
         int dir[2] = {};
         dir[0] = directions[j][0];
         dir[1] = directions[j][1];
-        std::cout << "Checking direction: " << dir[0] << ", " << dir[1] << std::endl;
         array<int, 4> possiblePin = {-1, -1, 0, 0};
         for (int i = 1; i < 8; i++)
         {
-            std::cout << "Checking square: " << startRow + dir[0] * i << ", " << startCol + dir[1] * i << std::endl;
             int endRow = startRow + dir[0] * i;
             int endCol = startCol + dir[1] * i;
             if (endRow >= 0 && endRow <= 7 && endCol >= 0 && endCol <= 7)
             {
                 string endPiece = board[endRow][endCol];
-                std::cout << "End piece: " << endPiece << std::endl;
-                if (endPiece[0] == allyColor)
+                if (endPiece[0] == allyColor && endPiece[1] != 'K')
                 {
                     if (possiblePin == array<int, 4>{-1, -1, 0, 0})
                     {
                         possiblePin = {endRow, endCol, dir[0], dir[1]};
-                        std::cout << "Possible pin found at: " << endRow << ", " << endCol << std::endl;
                     }
                     else
                     {
@@ -546,11 +547,9 @@ void GameState::checkForPinsAndChecks()
                         (i == 1 && type == 'K') ||
                         (i == 1 && type == 'P' && ((enemyColor == 'w' && j >= 6 && j <= 7) || (enemyColor == 'b' && j >= 4 && j <= 5))))
                     {
-                        std::cout << "Possible pin: " << possiblePin[0] << ", " << possiblePin[1] << ", " << possiblePin[2] << ", " << possiblePin[3] << std::endl;
                         if (possiblePin == array<int, 4>{-1, -1, 0, 0}) // no piece blocking, so check
                         {
                             inCheck = true;
-                            std::cout << "Check found at: " << endRow << ", " << endCol << std::endl;
                             checks.push_back({endRow, endCol, dir[0], dir[1]});
                             break;
                         }
@@ -592,9 +591,6 @@ void GameState::checkForPinsAndChecks()
     this->inCheck = inCheck;
     this->checks = checks;
     this->pins = pins;
-
-    std::cout << "Pins: " << pins.size() << std::endl;
-    std::cout << "Checks: " << checks.size() << std::endl;
 }
 
 void GameState::makeMove(string move)
@@ -618,8 +614,6 @@ void GameState::makeMove(string move)
             this->blackKingLocation = {endRow, endCol};
         }
     }
-    std::cout << "White King Location: " << this->whiteKingLocation[0] << ", " << this->whiteKingLocation[1] << std::endl;
-    std::cout << "Black King Location: " << this->blackKingLocation[0] << ", " << this->blackKingLocation[1] << std::endl;
     board[endRow][endCol] = board[startRow][startCol];
     board[startRow][startCol] = "--";
 

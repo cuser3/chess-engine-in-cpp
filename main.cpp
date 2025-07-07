@@ -35,45 +35,45 @@ int main()
 
     // Pawns
     sf::Texture whitePawnTexture;
-    sf::Sprite whitePawn = createSprite("Assets/white-pawn.png", whitePawnTexture, squareSize);
+    sf::Sprite whitePawn = createSprite("assets/white-pawn.png", whitePawnTexture, squareSize);
 
     sf::Texture blackPawnTexture;
-    sf::Sprite blackPawn = createSprite("Assets/black-pawn.png", blackPawnTexture, squareSize);
+    sf::Sprite blackPawn = createSprite("assets/black-pawn.png", blackPawnTexture, squareSize);
 
     // Rooks
     sf::Texture whiteRookTexture;
-    sf::Sprite whiteRook = createSprite("Assets/white-rook.png", whiteRookTexture, squareSize);
+    sf::Sprite whiteRook = createSprite("assets/white-rook.png", whiteRookTexture, squareSize);
 
     sf::Texture blackRookTexture;
-    sf::Sprite blackRook = createSprite("Assets/black-rook.png", blackRookTexture, squareSize);
+    sf::Sprite blackRook = createSprite("assets/black-rook.png", blackRookTexture, squareSize);
 
     // Knights
     sf::Texture whiteKnightTexture;
-    sf::Sprite whiteKnight = createSprite("Assets/white-knight.png", whiteKnightTexture, squareSize);
+    sf::Sprite whiteKnight = createSprite("assets/white-knight.png", whiteKnightTexture, squareSize);
 
     sf::Texture blackKnightTexture;
-    sf::Sprite blackKnight = createSprite("Assets/black-knight.png", blackKnightTexture, squareSize);
+    sf::Sprite blackKnight = createSprite("assets/black-knight.png", blackKnightTexture, squareSize);
 
     // Bishops
     sf::Texture whiteBishopTexture;
-    sf::Sprite whiteBishop = createSprite("Assets/white-bishop.png", whiteBishopTexture, squareSize);
+    sf::Sprite whiteBishop = createSprite("assets/white-bishop.png", whiteBishopTexture, squareSize);
 
     sf::Texture blackBishopTexture;
-    sf::Sprite blackBishop = createSprite("Assets/black-bishop.png", blackBishopTexture, squareSize);
+    sf::Sprite blackBishop = createSprite("assets/black-bishop.png", blackBishopTexture, squareSize);
 
     // Queens
     sf::Texture whiteQueenTexture;
-    sf::Sprite whiteQueen = createSprite("Assets/white-queen.png", whiteQueenTexture, squareSize);
+    sf::Sprite whiteQueen = createSprite("assets/white-queen.png", whiteQueenTexture, squareSize);
 
     sf::Texture blackQueenTexture;
-    sf::Sprite blackQueen = createSprite("Assets/black-queen.png", blackQueenTexture, squareSize);
+    sf::Sprite blackQueen = createSprite("assets/black-queen.png", blackQueenTexture, squareSize);
 
     // Kings
     sf::Texture whiteKingTexture;
-    sf::Sprite whiteKing = createSprite("Assets/white-king.png", whiteKingTexture, squareSize);
+    sf::Sprite whiteKing = createSprite("assets/white-king.png", whiteKingTexture, squareSize);
 
     sf::Texture blackKingTexture;
-    sf::Sprite blackKing = createSprite("Assets/black-king.png", blackKingTexture, squareSize);
+    sf::Sprite blackKing = createSprite("assets/black-king.png", blackKingTexture, squareSize);
 
     // Create the main window
     sf::RenderWindow window(sf::VideoMode({480, 480}), "Chess Engine");
@@ -111,6 +111,10 @@ int main()
                         int startCol = selectedSquare.first;
                         std::string move = gamestate.convertToMove(startRow, startCol, row, col);
                         std::set<std::string> validMoves = gamestate.getValidMoves();
+                        if (validMoves.empty())
+                        {
+                            std::cout << "No valid moves available." << std::endl;
+                        }
                         if (validMoves.count(move))
                         {
                             gamestate.makeMove(move);
@@ -118,6 +122,15 @@ int main()
                         }
                         pieceSelected = false;
                         selectedSquare = {-1, -1};
+                        gamestate.getValidMoves(); // update checkmate/stalemate flags so game ends when with move that checkmates/stalemates
+                        if (gamestate.checkmate)
+                        {
+                            std::cout << "Checkmate! Game over." << std::endl;
+                        }
+                        else if (gamestate.stalemate)
+                        {
+                            std::cout << "Stalemate! Game over." << std::endl;
+                        }
                     }
                 }
             }
