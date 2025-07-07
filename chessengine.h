@@ -28,7 +28,7 @@ public:
 
     // Member function to display the board
     void displayBoard();
-    
+
     set<string> getValidMoves();
 
     void makeMove(string);

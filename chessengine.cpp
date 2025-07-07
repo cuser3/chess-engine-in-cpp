@@ -129,15 +129,17 @@ set<string> GameState::getValidMoves()
     }
     if (moves.empty())
     {
-        if(this->inCheck)
+        if (this->inCheck)
         {
             this->checkmate = true;
         }
         else
         {
-            this->stalemate = true; 
+            this->stalemate = true;
         }
-    } else {
+    }
+    else
+    {
         this->checkmate = false;
         this->stalemate = false;
     }
@@ -425,7 +427,6 @@ void GameState::getAllQueenMoves(int row, int column, set<string> &moves)
     getAllRookMoves(row, column, moves);
     getAllBishopMoves(row, column, moves);
 }
-
 
 // TODO: maybe find more efficient way
 void GameState::getAllKingMoves(int row, int column, set<string> &moves)

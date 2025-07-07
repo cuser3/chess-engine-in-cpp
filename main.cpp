@@ -118,7 +118,7 @@ int main()
                         if (validMoves.count(move))
                         {
                             gamestate.makeMove(move);
-                            //gamestate.displayBoard();
+                            // gamestate.displayBoard();
                         }
                         pieceSelected = false;
                         selectedSquare = {-1, -1};
@@ -152,24 +152,35 @@ int main()
                 else
                     square.setFillColor(darkColor);
                 window.draw(square);
-                
 
                 // Draw pieces
                 std::string piece = gamestate.board[row][col];
                 sf::Sprite *sprite = nullptr;
 
-                if (piece == "wP") sprite = &whitePawn;
-                else if (piece == "bP") sprite = &blackPawn;
-                else if (piece == "wR") sprite = &whiteRook;
-                else if (piece == "bR") sprite = &blackRook;
-                else if (piece == "wN") sprite = &whiteKnight;
-                else if (piece == "bN") sprite = &blackKnight;
-                else if (piece == "wB") sprite = &whiteBishop;
-                else if (piece == "bB") sprite = &blackBishop;
-                else if (piece == "wQ") sprite = &whiteQueen;
-                else if (piece == "bQ") sprite = &blackQueen;
-                else if (piece == "wK") sprite = &whiteKing;
-                else if (piece == "bK") sprite = &blackKing;
+                if (piece == "wP")
+                    sprite = &whitePawn;
+                else if (piece == "bP")
+                    sprite = &blackPawn;
+                else if (piece == "wR")
+                    sprite = &whiteRook;
+                else if (piece == "bR")
+                    sprite = &blackRook;
+                else if (piece == "wN")
+                    sprite = &whiteKnight;
+                else if (piece == "bN")
+                    sprite = &blackKnight;
+                else if (piece == "wB")
+                    sprite = &whiteBishop;
+                else if (piece == "bB")
+                    sprite = &blackBishop;
+                else if (piece == "wQ")
+                    sprite = &whiteQueen;
+                else if (piece == "bQ")
+                    sprite = &blackQueen;
+                else if (piece == "wK")
+                    sprite = &whiteKing;
+                else if (piece == "bK")
+                    sprite = &blackKing;
 
                 if (sprite)
                 {
