@@ -33,6 +33,8 @@ int main()
     bool pieceSelected = false;
     std::pair<int, int> selectedSquare = {-1, -1};
 
+    std::set<std::pair<int, int>> possibleMoves;
+
     // Pawns
     sf::Texture whitePawnTexture;
     sf::Sprite whitePawn = createSprite("assets/white-pawn.png", whitePawnTexture, squareSize);
@@ -102,7 +104,19 @@ int main()
                         {
                             selectedSquare = {col, row};
                             pieceSelected = true;
-                            // gamestate.displayBoard();
+
+                            // highlighting possible moves for selected piece
+                            possibleMoves.clear();
+                            std::set<std::string> validMoves = gamestate.getValidMoves();
+                            for (const auto &moveStr : validMoves)
+                            {
+                                int startRow = 7 - (moveStr[1] - '1');
+                                int startCol = moveStr[0] - 'a';
+                                int endRow = 7 - (moveStr[3] - '1');
+                                int endCol = moveStr[2] - 'a';
+                                if (startRow == row && startCol == col)
+                                    possibleMoves.insert({endCol, endRow});
+                            }
                         }
                     }
                     else
@@ -122,6 +136,7 @@ int main()
                         }
                         pieceSelected = false;
                         selectedSquare = {-1, -1};
+                        possibleMoves.clear();
                         gamestate.getValidMoves(); // update checkmate/stalemate flags so game ends when with move that checkmates/stalemates
                         if (gamestate.checkmate)
                         {
@@ -147,11 +162,14 @@ int main()
                 square.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
 
                 if ((row + col) % 2 == 0)
+                {
                     square.setFillColor(lightColor);
-
+                }
                 else
+                {
                     square.setFillColor(darkColor);
-                window.draw(square);
+                }
+                window.draw(square);                
 
                 // Draw pieces
                 std::string piece = gamestate.board[row][col];
@@ -186,6 +204,15 @@ int main()
                 {
                     sprite->setPosition(sf::Vector2f(col * squareSize, row * squareSize));
                     window.draw(*sprite);
+                }
+                
+                if (possibleMoves.count({col, row}))
+                {
+                    sf::CircleShape circle(squareSize / 5);
+                    circle.setOrigin(sf::Vector2f(circle.getRadius(), circle.getRadius()));
+                    circle.setPosition(sf::Vector2f(col * squareSize + squareSize / 2, row * squareSize + squareSize / 2));
+                    circle.setFillColor(sf::Color(60, 60, 60, 180));
+                    window.draw(circle);
                 }
             }
         }

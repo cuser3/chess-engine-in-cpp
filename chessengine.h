@@ -49,6 +49,8 @@ public:
 
     void checkForPinsAndChecks();
 
+    string getPromotionPiecefromUser();
+
     string convertToMove(int, int, int, int);
 };
 

@@ -615,12 +615,42 @@ void GameState::makeMove(string move)
             this->blackKingLocation = {endRow, endCol};
         }
     }
+
+    if (pieceMoved == 'P')
+    {
+        if (color == 'w' && endRow == 0)
+        {
+            string promotionPiece = getPromotionPiecefromUser();
+            board[startRow][startCol] = "w" + promotionPiece;
+        }
+        else if (color == 'b' && endRow == 7)
+        {
+            string promotionPiece = getPromotionPiecefromUser();
+            board[startRow][startCol] = "b" + promotionPiece;
+        }
+    }
+
     board[endRow][endCol] = board[startRow][startCol];
     board[startRow][startCol] = "--";
 
     movelog.push_back(move);
     whiteToMove = !whiteToMove;
 }
+
+string GameState::getPromotionPiecefromUser()
+{
+    string piece;
+    std::cout << "Promote pawn to (Q, R, B, N): ";
+    std::cin >> piece;
+    while (piece != "Q" && piece != "R" && piece != "B" && piece != "N")
+    {
+        std::cout << "Invalid input. Please enter Q, R, B, or N: ";
+        std::cin >> piece;
+    }
+    std::cout << "Pawn promoted to " << piece << std::endl;
+    return piece;
+}  
+
 
 string GameState::convertToMove(int startRow, int startCol, int endRow, int endCol)
 {

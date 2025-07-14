@@ -10,9 +10,9 @@ A simple chess engine and graphical chessboard built with C++ and SFML. The proj
 
 ## Future Work
 
-- Pawn promotion
+- Pawn promotion inside UI
 - Castling
-- AI Chessbot, using simple algorithms like Min/Max or alpha/beta pruning
+- AI Chessbot, using simple algorithms like min/max or alpha/beta pruning
 
 ## Requirements
 
