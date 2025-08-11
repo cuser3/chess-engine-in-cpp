@@ -20,6 +20,7 @@ GameState::GameState()
     pins = {};
     checkmate = false;
     stalemate = false;
+    possibleEnPassentField = {-1, -1};
 
     string initialBoard[8][8] = {
         {"bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"},
@@ -227,15 +228,31 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
                     moves.insert(move);
                 }
             }
-            if (column + 1 <= 7)
+            if (row - 1 == this->possibleEnPassentField[0] && column - 1 == this->possibleEnPassentField[1])
             {
-                if (board[row - 1][column + 1][0] == 'b')
+                if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == -1))
                 {
-                    if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == 1))
-                    {
-                        string move = convertToMove(row, column, row - 1, column + 1);
-                        moves.insert(move);
-                    }
+                    string move = convertToMove(row, column, row - 1, column - 1);
+                    moves.insert(move);
+                }
+            }
+        }
+        if (column + 1 <= 7)
+        {
+            if (board[row - 1][column + 1][0] == 'b')
+            {
+                if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == 1))
+                {
+                    string move = convertToMove(row, column, row - 1, column + 1);
+                    moves.insert(move);
+                }
+            }
+            if (row - 1 == this->possibleEnPassentField[0] && column + 1 == this->possibleEnPassentField[1])
+            {
+                if (!piecePinned || (pinDirection[0] == -1 && pinDirection[1] == 1))
+                {
+                    string move = convertToMove(row, column, row - 1, column + 1);
+                    moves.insert(move);
                 }
             }
         }
@@ -265,10 +282,26 @@ void GameState::getAllPawnMoves(int row, int column, set<string> &moves)
                     moves.insert(move);
                 }
             }
+            if (row + 1 == this->possibleEnPassentField[0] && column - 1 == this->possibleEnPassentField[1])
+            {
+                if (!piecePinned || (pinDirection[0] == 1 && pinDirection[1] == -1))
+                {
+                    string move = convertToMove(row, column, row + 1, column - 1);
+                    moves.insert(move);
+                }
+            }
         }
         if (column + 1 <= 7)
         {
             if (board[row + 1][column + 1][0] == 'w')
+            {
+                if (!piecePinned || (pinDirection[0] == 1 && pinDirection[1] == 1))
+                {
+                    string move = convertToMove(row, column, row + 1, column + 1);
+                    moves.insert(move);
+                }
+            }
+            if (row + 1 == this->possibleEnPassentField[0] && column + 1 == this->possibleEnPassentField[1])
             {
                 if (!piecePinned || (pinDirection[0] == 1 && pinDirection[1] == 1))
                 {
@@ -628,6 +661,34 @@ void GameState::makeMove(string move)
             string promotionPiece = getPromotionPiecefromUser();
             board[startRow][startCol] = "b" + promotionPiece;
         }
+        else if (color == 'w' && endRow == 4 && startRow == 6 && startCol == endCol)
+        {
+            this->possibleEnPassentField[0] = 5;
+            this->possibleEnPassentField[1] = endCol;
+        }
+        else if (color == 'b' && endRow == 3 && startRow == 1 && startCol == endCol)
+        {
+            this->possibleEnPassentField[0] = 2;
+            this->possibleEnPassentField[1] = endCol;
+        }
+        else
+        {
+            this->possibleEnPassentField[0] = -1;
+            this->possibleEnPassentField[1] = -1;
+        }
+    }
+
+    // En passant capture
+    if (pieceMoved == 'P' && startCol != endCol && board[endRow][endCol] == "--")
+    {
+        if (color == 'w')
+        {
+            board[endRow + 1][endCol] = "--";
+        }
+        else
+        {
+            board[endRow - 1][endCol] = "--";
+        }
     }
 
     board[endRow][endCol] = board[startRow][startCol];
@@ -649,8 +710,7 @@ string GameState::getPromotionPiecefromUser()
     }
     std::cout << "Pawn promoted to " << piece << std::endl;
     return piece;
-}  
-
+}
 
 string GameState::convertToMove(int startRow, int startCol, int endRow, int endCol)
 {

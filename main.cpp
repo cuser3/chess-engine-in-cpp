@@ -81,7 +81,6 @@ int main()
     sf::RenderWindow window(sf::VideoMode({480, 480}), "Chess Engine");
     window.setVerticalSyncEnabled(true);
 
-    // Run the program as long as the window is open
     while (window.isOpen())
     {
         // check all the window's events that were triggered since the last iteration of the loop
@@ -90,7 +89,6 @@ int main()
             if (event->is<sf::Event::Closed>())
                 window.close();
 
-            // Handle mouse button presses
             if (const auto *mouseButtonpressed = event->getIf<sf::Event::MouseButtonPressed>())
             {
                 if (mouseButtonpressed->button == sf::Mouse::Button::Left)
@@ -105,7 +103,7 @@ int main()
                             selectedSquare = {col, row};
                             pieceSelected = true;
 
-                            // highlighting possible moves for selected piece
+                            // Generate possible moves for selected piece
                             possibleMoves.clear();
                             std::set<std::string> validMoves = gamestate.getValidMoves();
                             for (const auto &moveStr : validMoves)
@@ -132,7 +130,6 @@ int main()
                         if (validMoves.count(move))
                         {
                             gamestate.makeMove(move);
-                            // gamestate.displayBoard();
                         }
                         pieceSelected = false;
                         selectedSquare = {-1, -1};
@@ -150,7 +147,7 @@ int main()
                 }
             }
         }
-        // clear the window with black color
+
         window.clear(sf::Color::Black);
 
         // Draw chessboard
@@ -158,6 +155,7 @@ int main()
         {
             for (int col = 0; col < boardSize; ++col)
             {
+                // Draw squares
                 sf::RectangleShape square(sf::Vector2f(squareSize, squareSize));
                 square.setPosition(sf::Vector2f(col * squareSize, row * squareSize));
 
@@ -169,7 +167,7 @@ int main()
                 {
                     square.setFillColor(darkColor);
                 }
-                window.draw(square);                
+                window.draw(square);
 
                 // Draw pieces
                 std::string piece = gamestate.board[row][col];
@@ -205,7 +203,8 @@ int main()
                     sprite->setPosition(sf::Vector2f(col * squareSize, row * squareSize));
                     window.draw(*sprite);
                 }
-                
+
+                // highlight possible moves
                 if (possibleMoves.count({col, row}))
                 {
                     sf::CircleShape circle(squareSize / 5);
@@ -216,7 +215,6 @@ int main()
                 }
             }
         }
-        // end the current frame
         window.display();
     }
 

@@ -22,6 +22,7 @@ public:
     vector<array<int, 4>> checks;
     bool checkmate;
     bool stalemate;
+    array<int, 4> possibleEnPassentField;
 
     // Constructor
     GameState();
